@@ -1,9 +1,11 @@
 - name: MySQL Create Cluster Software Repository
   become: true
-  get_url: 
-    url: "{{ mycl_ndb_web_src }}{{ item }}"
-    dest: "{{ dep_home }}/playbook/files/{{ item }}"
+  shell: |
+    curl "{{ mycl_ndb_web_src }}{{ item }}" | aws s3 cp - "s3://{{ s3_bucket }}/{{ item }}"
   loop: "{{ mycl_ndb_node_files }}"
 
+#  shell: |
+#    "curl {{ mycl_ndb_web_src }}{{ item }} | aws s3 cp - s3://{{ s3_bucket }}/{{ item }}"
+#  loop: "{{ mycl_ndb_mgr_files }}"
  
     

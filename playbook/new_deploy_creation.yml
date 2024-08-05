@@ -43,3 +43,161 @@
         regexp: 'vpc_id:'
         line: "vpc_id: {{ vpc_id }}"
 
+    - name: Deployment Record Update New Subnet Id
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'subnet_id:'
+        line: "subnet_id: {{ subnet_info['subnet']['id'] }}"
+
+    - name: Create node communication security group
+      amazon.aws.ec2_security_group:
+        name: "{{ sg }}"
+        description: communication for kubernetes hosts
+        vpc_id: "{{ vpc_id }}"
+        rules:
+          - proto: tcp
+            ports:
+              - 443
+              - 80
+              - 22
+              - 3306
+            cidr_ip: "{{ ncom_net_cidr }}"
+          - proto: tcp
+            ports:
+              - 3306
+              - 443
+              - 80
+              - 22
+            cidr_ip: "{{ my_ip }}"
+      register: sg_info
+    - debug:
+        msg: "{{ sg_info }}"
+
+    - name: Deployment Record Update Security Group
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'sg_id:'
+        line: "sg_id: {{ sg_info['group_id'] }}"
+
+    - name: Show security group sg instance_id
+      ansible.builtin.debug:
+        var: sg_info['group_id']
+
+    - name: Assume Role exists/create
+      community.aws.iam_role:
+        name: "{{ iam_role }}"
+        assume_role_policy_document: "{{ lookup('file','{{ script_path }}/assume_iam_role.json') }}"
+        description: Role for nagios monitor
+        state: present
+        tags:
+          environment: "{{ new_env }}"
+      register: iam_role_info
+    - debug:
+        msg: "{{ iam_role_info }}"
+
+    - name: Deployment Record Update IAM Role
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'iam_role:'
+        line: "iam_role: {{ iam_role_info['role_id'] }}"
+
+    # EC2 instance access
+    - name: AWS IAM Instance Profile - Create
+      ansible.builtin.command: aws iam create-instance-profile
+        --instance-profile-name "{{ instance_profile }}"
+      ignore_errors: true
+
+    - name: ECR Policy exists/create
+      amazon.aws.iam_policy:
+        iam_type: role
+        iam_name: "{{ iam_role }}"
+        policy_name: "{{ policy_name }}"
+        policy_json: "{{ lookup('file', s3_policy ) }}"
+        state: present
+      register: iam_policy_info
+    - debug:
+        msg: "{{ iam_policy_info }}"
+
+    - name: Deployment Record Update IAM Policy
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'iam_policy:'
+        line: "iam_policy: {{ iam_policy_info['policy_names'][0] }}"
+
+    - name: Attach mycl IAM Role to Profile
+      ansible.builtin.command: aws iam add-role-to-instance-profile
+        --role-name "{{ iam_role }}"
+        --instance-profile-name "{{ instance_profile }}"
+      ignore_errors: true
+
+    - name: Deployment Record Update Instance Profile
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'instance_profile:'
+        line: "instance_profile: {{ instance_profile }}"
+
+    - name: Deployment Record Update Load Balancer
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'elb:'
+        line: "elb: {{ my_elb }}"
+
+    - name: AMI Instance exists/create
+      amazon.aws.ec2_instance:
+        name: "{{ item }}"
+        key_name: "{{ key_name }}"
+        iam_instance_profile: "{{ instance_profile }}"
+        vpc_subnet_id: "{{ subnet_info['subnet']['id'] }}"
+        instance_type: "{{ ins_type }}"
+        security_groups:
+          - "{{ sg }}"
+        network:
+          assign_public_ip: true
+        image_id: "{{ ubu_22_10g }}"
+        tags:
+          environment: "{{ new_env }}"
+      register: ec2
+    - debug:
+        msg: "{{ ec2 }}"
+
+    - name: Deployment Record Update Instance
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'instance_id:'
+        line: "instance_id: {{ ec2['instance_ids'][0] }}"
+
+    - name: Register instance in ad-hoc groups
+      add_host:
+        hostname: "{{ ec2['instances'][0]['network_interfaces'][0]['association']['public_ip'] }}"
+        groups:
+          - ec2hosts
+          - mycl
+          - u22
+#          - myclmgr
+
+    - name: Update deployment inventory.yml
+      shell: |
+        php "{{ script_path }}/update_inventory.php" "{{ groups }}"
+      ignore_errors: true
+      register: php_output
+    - debug:
+        msg: "{{ php_output }}"
+- name: Run play basic ubuntu server setup
+  ansible.builtin.import_playbook: ubuntu_server_setup.yml
+
+- name: Populate S3 MySQL Software Repository
+  ansible.builtin.import_playbook: test_my_repo.yml
