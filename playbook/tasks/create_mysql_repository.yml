@@ -1,0 +1,9 @@
+- name: MySQL Create Cluster Software Repository
+  become: true
+  get_url: 
+    url: "{{ mycl_ndb_web_src }}{{ item }}"
+    dest: "{{ dep_home }}/playbook/files/{{ item }}"
+  loop: "{{ mycl_ndb_node_files }}"
+
+ 
+    

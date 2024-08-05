@@ -1,0 +1,30 @@
+---
+
+    - name: create auto scaling group
+      amazon.aws.autoscaling_group:
+        name: "{{ items.asg_name }}"
+        availability_zones: [ "{{ az }}" ]
+        load_balancers: ["{{ my_elb }}"]
+        vpc_zone_identifier:
+          - "{{ subnet_info['subnets'][0]['subnet_id'] }}"
+        launch_template: 
+          launch_template_name: "{{ items.asg_lt }}"
+        health_check_period: 60
+        health_check_type: 'EC2'
+        replace_all_instances: True
+        min_size: "{{ items.asg_host_min }}"
+        max_size: "{{ items.asg_host_max}}"
+        desired_capacity: "{{ items.host_desired }}"
+        region: "{{ region }}"
+      register: asg_info
+    - debug:
+        msg: "{{ asg_info }}"
+
+    - name: Deployment Record Update mycl nodes ASG
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: "{{ items.asg_id_param }}:"
+        line: "{{ items.asg_id_param }}: {{ asg_info['auto_scaling_group_arn'] }}"
+

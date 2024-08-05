@@ -1,0 +1,44 @@
+---
+
+    - name: create launch template
+      community.aws.ec2_launch_template:
+        name: "{{ mycl_asg_lt }}"
+        region: "{{ region }}"
+        placement:
+          availability_zone: "{{ az }}"
+        iam_instance_profile: "{{ instance_profile }}" 
+        block_device_mappings:
+          - ebs:
+              volume_size: 22
+              volume_type: gp2
+              delete_on_termination: true
+              encrypted: false
+            device_name: /dev/sdb
+        credit_specification:
+          cpu_credits: Unlimited
+        network_interfaces:
+          - device_index: 0
+            groups:
+              - "{{ sec_group_info['security_groups'][0]['group_id'] }}"
+            associate_public_ip_address: true
+            delete_on_termination: true
+            ipv6_address_count: 0
+            subnet_id: "{{ subnet_info['subnets'][0]['subnet_id'] }}"
+        monitoring:
+          enabled: true
+        user_data: "{{ lookup('file', '../scripts/user-data.64') }}"
+        image_id: "{{ ami_info['images'][0]['image_id'] }}"
+        instance_type: "{{ ins_type }}"
+        key_name: "{{ key_name }}"
+      register: lt_info
+    - debug:
+        msg: "{{ lt_info }}"
+
+    - name: Deployment Record Upate launch template
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'lt_id:'
+        line: "lt_id: {{ lt_info['template']['launch_template_id'] }}"
+

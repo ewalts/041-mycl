@@ -1,0 +1,49 @@
+- name: Fetch NBD Manager ASG Info
+  amazon.aws.autoscaling_group_info:
+    name: "{{ myclmgr_asg }}"
+  register: asg_info
+- debug:
+    msg: "{{ asg_var.instance_id }}"
+  loop: "{{ asg_info.results[0].instances }}"
+  loop_control:
+    loop_var: asg_var
+
+#    msg: "{{ asg_info.results }}"
+
+- name: Fetch Instance Info
+  amazon.aws.ec2_instance_info:
+#    instance_ids: ["{{ asg_info.results[0].instances.instance_id }}"]
+    instance_ids: "{{ asg_var.instance_id }}"
+  register: ec2
+  loop: "{{ asg_info.results[0].instances }}"
+  loop_control:
+    loop_var: asg_var
+- debug:
+    msg: "{{ ec2 }}"
+
+- name: Fetch NBD Nodes ASG Info
+  amazon.aws.autoscaling_group_info:
+    name: "{{ mycl_asg }}"
+  register: myasg_info
+- debug:
+    msg: "{{ asg_var.instance_id }}"
+  loop: "{{ myasg_info.results[0].instances }}"
+  loop_control:
+    loop_var: myasg_var
+
+#    msg: "{{ myasg_info.results }}"
+
+- name: Fetch Instance Info
+  amazon.aws.ec2_instance_info:
+#    instance_ids: ["{{ asg_info.results[0].instances.instance_id }}"]
+    instance_ids: "{{ myasg_var.instance_id }}"
+  register: ndb_nodes
+  loop: "{{ myasg_info.results[0].instances }}"
+  loop_control:
+    loop_var: myasg_var
+- debug:
+    msg: "{{ ndb_nodes }}"
+
+
+
+#  loop: "{{ asg_info.results[0].instances }}"

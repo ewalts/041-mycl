@@ -1,0 +1,56 @@
+
+#### WARNING:  Require test verification, or likely overwright current database in the next few steps
+    - name: Copy database file
+      copy:
+        src: "{{ mysql_src_dir }}/{{ db_file }}"
+        dest: "/tmp/{{ db_file }}"
+      ignore_errors: true
+
+    - name: Create database
+      become: true
+      shell: |
+        mysqladmin create "{{ db_name }}"
+      ignore_errors: true
+      register: create_result
+      
+    - debug:
+        msg: "{{ create_result }}"
+
+    - name: Create db user
+      shell: |
+        echo "CREATE USER '{{ db_user }}'@'%' IDENTIFIED BY '{{ db_pass }}';" | sudo mysql
+        echo "GRANT ALL PRIVILEGES on {{ db_name }}.* TO {{ db_user }}@'%';" | sudo mysql
+      register: new_db_user
+
+    - debug:
+        msg: "{{ new_db_user }}" 
+
+
+    - name: Import database 
+      become: true
+      shell: |
+        mysql "{{ db_name }}" < "/tmp/{{ db_file }}"
+      register: import_result
+      when: "{{ table_count.stdout_lines[1]}} > 1"
+      ignore_errors: true
+    - debug:
+        msg: "{{ import_result }}"
+
+    - name: Create db user account
+      become: true
+      community.mysql.mysql_user: 
+        user: "{{ db_user }}"
+        host: '*'
+        password: "{{ db_pass }}"
+        priv:
+          - "{{ db_name }}.*: 'ALL, GRANT'"
+        state: present
+      register: out
+      ignore_errors: true
+    - debug:
+        msg: "{{ out }}"
+    - name: Add some sample data
+      shell: |
+        echo "insert into dep_types (name,details,rCdate) values ('011-lemp', 'Nginx PHP-FPM and MySQL',NOW()),  ('021-lamp', 'Apache PHP MySQL',NOW()), ('023-wp', 'WordPress',NOW());" | sudo mysql "{{ db_name }}"
+      ignore_errors: true
+
