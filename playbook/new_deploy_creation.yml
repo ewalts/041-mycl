@@ -1,0 +1,45 @@
+--- 
+- name: Inital testing for MySQL NDB cluster
+  vars_files:
+    - vars/sec_vars.yml
+    - vars/deployment_vars.yml
+    - vars/aws_template_vars.yml
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    # New project keypair exists or create
+    - name: import new key task key_pair
+      import_tasks:
+        file: tasks/key_pair.yml
+
+    # AWS storage w/access policies for project software and configurations
+    - name: import S3 and ECR creation task
+      import_tasks:
+        file: tasks/create_s3_policy.yml
+
+    - name: import S3 and ECR creation task
+      import_tasks:
+        file: tasks/create_s3_bucket.yml
+
+    # Networking exists or create
+    - name: Create Node communication subnet
+      amazon.aws.ec2_vpc_subnet:
+        state: present
+        vpc_id: "{{ vpc_id }}"
+        cidr: "{{ ncom_net_cidr }}"
+        tags:
+          net_role: k8s_ncom
+          environment: "{{ new_env }}"
+          Name: "{{ subnet_tag_name }}"
+      register: subnet_info
+    - debug:
+        msg: "{{ subnet_info }}"
+
+    - name: Deployment Record Update Include VPC ID
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'vpc_id:'
+        line: "vpc_id: {{ vpc_id }}"
+
