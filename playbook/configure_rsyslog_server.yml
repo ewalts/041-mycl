@@ -1,0 +1,52 @@
+##### EW this will configure rsyslog to listen as central logging collector
+---
+- name: Initial server setup tasks
+  hosts: ec2hosts
+  remote_user: ubuntu
+  gather_facts: false
+  vars_files:
+    - vars/sec_vars.yml
+    - vars/deployment_vars.yml
+
+  tasks:
+    - name: Wait for SSH
+      ansible.builtin.wait_for:
+        port: 22
+        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+        search_regex: OpenSSH
+        delay: 10
+      connection: local
+
+    - name: Update apt cache
+      become: true
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Rsyslog package exists/install
+      become: true
+      apt:
+        name: rsyslog
+        state: latest
+    
+    - name: Ansible copy file local to remote
+      hosts: sat-test
+      tasks:
+      - name: Copy file with owner and permissions
+        become: true
+        ansible.builtin.copy:
+          src: files/rsyslog_server.conf
+          dest: /etc/rsyslog.conf
+          owner: root
+          group: localadmin
+          mode: 0644
+    
+    #  - name: Configure remote host address
+    #    become: true
+    #    shell: |
+    #      sed -i 's/_REM_HOST_/{{ log_dest }}/g' /etc/rsyslog.conf
+    #
+    - name: Restart rsyslog daemon
+      service: 
+        name: rsyslog
+        state: restarted
+
