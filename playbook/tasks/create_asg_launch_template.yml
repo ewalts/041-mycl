@@ -1,3 +1,4 @@
+## This will create the launch template and record to deployment_output_vars
 ---
 
     - name: create launch template

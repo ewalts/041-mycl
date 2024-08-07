@@ -1,0 +1,30 @@
+##### EW this will configure rsyslog to listen as central logging collector
+---
+- name: Rsyslog package exists/install
+  become: true
+  apt:
+    name: rsyslog
+    state: latest
+
+- name: Ansible copy file local to remote
+  hosts: sat-test
+  tasks:
+  - name: Copy file with owner and permissions
+    become: true
+    ansible.builtin.copy:
+      src: files/rsyslog_server.conf
+      dest: /etc/rsyslog.conf
+      owner: root
+      group: localadmin
+      mode: 0644
+
+#  - name: Configure remote host address
+#    become: true
+#    shell: |
+#      sed -i 's/_REM_HOST_/{{ log_dest }}/g' /etc/rsyslog.conf
+#
+  - name: Restart rsyslog daemon
+    service: 
+      name: rsyslog
+      state: restarted
+
