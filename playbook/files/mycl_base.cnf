@@ -1,0 +1,25 @@
+# my.cnf
+# example additions to my.cnf for NDB Cluster
+# (valid in MySQL 8.4)
+
+# enable ndbcluster storage engine, and provide connection string for
+# management server host (default port is 1186)
+[mysqld]
+ndbcluster
+ndb-connectstring=MYCL_MGR_HOST
+
+
+# provide connection string for management server host (default port: 1186)
+[ndbd]
+connect-string=MYCL_NODE1
+
+# provide connection string for management server host (default port: 1186)
+[ndb_mgm]
+connect-string=MYCL_MGR_HOST
+
+# provide location of cluster configuration file
+# IMPORTANT: When starting the management server with this option in the
+# configuration file, the use of --initial or --reload on the command line when
+# invoking ndb_mgmd is also required.
+[ndb_mgmd]
+config-file=/etc/config.ini

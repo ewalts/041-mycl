@@ -1,0 +1,5 @@
+- name: add mysql repository
+  become: true
+  shell: |
+    sudo dpkg -i https://github.com/ewalts/resources/blob/main/mysql/repo/apt/mysql-apt-config_0.8.32-1_all.deb
+

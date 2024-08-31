@@ -1,21 +1,18 @@
 ##### EW this will configure rsyslog for central logging
 ---
-- name: Rsyslog package exists/install
-  become: true
-  apt:
-    name: rsyslog
-    state: latest
+  - name: Rsyslog package exists/install
+    become: true
+    apt:
+      name: rsyslog
+      state: latest
 
-- name: Ansible copy file local to remote
-  hosts: sat-test
-  tasks:
   - name: Copy file with owner and permissions
     become: true
     ansible.builtin.copy:
       src: files/rsyslog.conf
       dest: /etc/rsyslog.conf
       owner: root
-      group: localadmin
+      group: root
       mode: 0644
 
   - name: Configure remote host address

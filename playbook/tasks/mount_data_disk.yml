@@ -1,0 +1,63 @@
+    - name: Wait for SSH
+      ansible.builtin.wait_for:
+        port: 22
+        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+        search_regex: OpenSSH
+        delay: 10
+      connection: local
+
+    - name: create partition
+      become: true
+      parted:
+        device: /dev/xvdd
+        number: 1
+        flags: [ lvm ]
+        state: present
+
+    - name: Create volume group
+      become: true
+      community.general.lvg:
+        vg: mysql.data
+        pvs: /dev/xvdd1
+        pvresize: true
+        state: active
+
+    - name: Create volume
+      become: true
+      community.general.lvol:
+        vg: mysql.data
+        lv: lv01
+        size: +100%FREE
+      register: lv
+    - debug:
+        msg: "{{ lv }}"
+
+    - name: Is mount point
+      stat:
+        path: "{{ mysql_data_dir }}"
+      ignore_errors: true
+      register: data
+    - debug:
+        msg: "{{ data }}"
+
+    - name: Mount the volume
+      become: true
+      shell: |
+        mkfs.xfs /dev/mysql.data/lv01
+        mkdir /data0
+        mount /dev/mysql.data/lv01 /data0
+        echo "/dev/mysql.data/lv01  /data0  xfs  auto  0 0" >> /etc/fstab
+        mkdir /data0/mysql
+        mkdir /data0/docker
+        chown mysql:mysql /data0/mysql
+        chmod 0700 /data0/mysql
+      when: (data.stat.exists != true ) == true
+
+    - name: Set filesystem permissions and migrade system database
+      become: true
+      shell: |
+        chown mysql:mysql /data0/mysql
+        rsync -av /var/lib/mysql/ /data0/mysql/
+      ignore_errors: true
+      when: (data.stat.exists != true ) == true
+
