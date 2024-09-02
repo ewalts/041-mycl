@@ -74,7 +74,7 @@
             subnet_id: "{{ subnet_info['subnets'][0]['subnet_id'] }}"
         monitoring:
           enabled: true
-        user_data: "{{ lookup('file', '../scripts/user-data.64') }}"
+        user_data: "{{ lookup('file', 'scripts/mgr_user-data.64') }}"
         image_id: "{{ ami_info['images'][0]['image_id'] }}"
         instance_type: "{{ ins_type }}"
         key_name: "{{ key_name }}"
@@ -147,7 +147,7 @@
             subnet_id: "{{ subnet_info['subnets'][0]['subnet_id'] }}"
         monitoring:
           enabled: true
-        user_data: "{{ lookup('file', '../scripts/user-data.64') }}"
+        user_data: "{{ lookup('file', 'scripts/nodes_user-data.64') }}"
         image_id: "{{ ami_info['images'][0]['image_id'] }}"
         instance_type: "{{ ins_type }}"
         key_name: "{{ key_name }}"
