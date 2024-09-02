@@ -1,0 +1,12 @@
+{
+"Version": "2012-10-17",
+"Id": "EWs3EveryPolicy",
+"Statement": [{
+  "Sid": "MyS3Everything",
+  "Principal": "arn:aws:iam::683853257660:user/ericw",
+  "Effect": "Allow",
+  "Action": "s3:*",
+  "Resource": "arn:aws:s3::01-rwi-k8s/*"
+  }
+}]
+}

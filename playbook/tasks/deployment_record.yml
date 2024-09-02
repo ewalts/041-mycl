@@ -1,0 +1,23 @@
+    - name: Deployment Record Create/exists
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'product: '
+        line: "product: {{ product_title }}"
+
+    - name: Deployment Record Product Identifier
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'product_id:'
+        line: "product_id: {{ product_id }}"
+
+    - name: Deployment Record Update Include VPC ID
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'vpc_id:'
+        line: "vpc_id: {{ vpc_id }}"

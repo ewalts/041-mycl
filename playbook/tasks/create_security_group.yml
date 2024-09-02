@@ -1,0 +1,32 @@
+    - name: Create node communication security group
+      amazon.aws.ec2_security_group:
+        name: "{{ sg }}"
+        description: communication for kubernetes hosts
+        vpc_id: "{{ vpc_id }}"
+        rules:
+          - proto: tcp
+            ports:
+              - 443
+              - 80
+              - 22
+              - 3306
+            cidr_ip: "{{ ncom_net_cidr }}"
+          - proto: tcp
+            ports:
+              - 3306
+              - 443
+              - 80
+              - 22
+            cidr_ip: "{{ my_ip }}"
+      register: sg_info
+    - debug:
+        msg: "{{ sg_info }}"
+
+    - name: Deployment Record Update Security Group
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'sg_id:'
+        line: "sg_id: {{ sg_info['group_id'] }}"
+

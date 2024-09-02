@@ -1,0 +1,22 @@
+- name: Copy respository package
+  copy: 
+    src: files/repo/apt/mysql-apt-config_0.8.32-1_all.deb
+    dest: /tmp/mysql-apt-config_0.8.32-1_all.deb
+
+#- name: Copy script
+#  copy:
+#    src: scripts/install_mysql_repository_deb.sh
+#    dest: /tmp/install_mysql_repository_deb.sh
+#    mode: 0777
+
+- name: add mysql repository
+  become: true
+  apt:
+    name: /tmp/mysql-apt-config_0.8.32-1_all.deb 
+    options: force-confdef
+
+- name: Update cache
+  become: true
+  apt:
+    update_cache: true
+

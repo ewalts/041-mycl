@@ -1,0 +1,12 @@
+ami_name: "{{ product_id }}-ubu-22"
+#mycl_asgs:
+#  - { name: "{{ product_id }}-node-w2-asg", lt: "{{ product_id }}-node-launch-template", lt_param: 'node-launch-template' }
+#  - { name: "{{ product_id }}-mgr-w2-asg", lt: "{{ product_id }}-mgr-launch-template", lt_param: 'mgr-launch-template' }
+
+myclmgr_asg_name: "{{ product_id }}-mgr-w2-asg" 
+myclmgr_asg_lt: "{{ product_id }}-mgr-launch-template"
+myclmgr_lt_param: 'mgr-launch-template' 
+
+myclnode_asg_name: "{{ product_id }}-node-w2-asg"
+myclnode_asg_lt: "{{ product_id }}-node-launch-template"
+myclnode_lt_param: 'node-launch-template'

@@ -1,0 +1,29 @@
+<?PHP
+###> This version reads an existing plaintext script in the same directory named user-data
+###> it will replace the string S3_BUCKET with the actual bucket name passed in from the play
+###> Then base64 encode the data into a file called user-data64
+
+$s3_bucket=$argv[1]; ###> Passed in from play
+
+$script='user-data'; ###> Original script
+$fh=fopen($script,'w+'); ###> file handle
+$orig_content=fread($fh,40000);  ###>  Read the stream
+fclose($fh); ###> done reading closing file handle
+
+
+$fh64=fopen('user-data64','w'); ###> create or overwrite script called user-data64
+
+$new=str_replace('S3_BUCKET',$s3_bucket,$orig_content); ###> define the current bucket
+
+$encode64=base64_encode($new);
+try{
+	if(!fwrite($fh64,$encode64)){
+		throw new exception();
+		$Message='Failed to write user-data64';
+	}
+}
+catch(Exception $e){
+	echo $e->getMessage()."\n";
+	
+}
+?>

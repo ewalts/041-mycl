@@ -1,0 +1,13 @@
+- name: Deploy tests
+  vars_files:
+    - vars/sec_vars.yml
+    - vars/deployment_vars.yml
+    - vars/aws_template_vars.yml
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    # test security group information
+    - debug: 
+        msg: "{{ sg }}"
+      
+

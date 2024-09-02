@@ -1,0 +1,85 @@
+- name: Create MySQL NDB template instance
+  hosts: mysql
+  gather_facts: false
+  vars_files:
+    - vars/sec_vars.yml
+    - vars/mysql_vars.yml
+    - vars/deployment_vars.yml
+    - vars/aws_template_vars.yml
+    - "{{ deployment_log }}"
+  tasks:
+    ###>  Check MySQL Data Dir
+
+    - name: pymysql present
+      become: true
+      apt:
+        name: python3-pymysql
+        state: present
+
+    - name: Check disk
+      become: true
+      stat:  
+        path: "{{ mysql_data_dir }}"
+      register: db_dir
+
+    - debug:
+        msg: "{{ db_dir.stat.exists }}"
+
+    - name: Early MySQL check before mount task
+      service:
+        name: mysql
+        state: started
+      ignore_errors: true
+      register: mysql_details
+
+    - name: Mount data0
+      import_tasks:
+        file: tasks/mount_data_disk.yml
+      when: (db_dir.stat.exists != true ) == true
+
+    - name: Wait for MySQL before installing
+      service:
+        name: mysql
+        state: started
+      register: mysql_details
+      ignore_errors: true
+
+    ###>  Check for MySQL Database
+    - name: Count tables in "{{ db_name }}"
+      become: true
+      shell: |
+        echo "select count(*) from table_handles where OBJECT_SCHEMA='{{ db_name }}';" | mysql performance_schema
+      when: db_dir.stat.exists == true
+      ignore_errors: true
+      register: table_count
+    - debug:
+        msg: "{{ table_count.stdout_lines[1] }}"
+      ignore_errors: true
+
+    - name: Configure MySQL task
+      import_tasks:
+        file: tasks/configure_mysql.yml
+      #when: ( table_count.stdout_lines[1] < 1) == true"
+      ignore_errors: true
+
+    - name: Reboot MySQL hosts
+      become: true
+      ansible.builtin.reboot:
+
+    - name: Wait for SSH
+      ansible.builtin.wait_for:
+        port: 22
+        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+        search_regex: OpenSSH
+        delay: 10
+      connection: local
+
+    - name: Wait for MySQL before create database
+      service:
+        name: mysql
+        state: started
+      register: mysql_details
+      until: mysql_details.status.ActiveState == "active"
+      retries: 10
+      delay: 10
+

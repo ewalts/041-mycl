@@ -1,0 +1,70 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "s3:ReplicateObject",
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:PutBucketNotification",
+                "s3:GetObjectTorrent",
+                "s3:PutBucketWebsite",
+                "s3:PutObjectRetention",
+                "s3:UpdateJobStatus",
+                "kms:Decrypt",
+                "kms:Encrypt"
+            ],
+            "Resource": "arn:aws:s3:::01-rwi-k8s" 
+        },
+
+        {
+            "Effect": "Allow",
+            "Action": [
+                "imagebuilder:GetComponent",
+                "imagebuilder:GetContainerRecipe",
+                "ecr:GetAuthorizationToken",
+                "ecr:BatchGetImage",
+                "ecr:InitiateLayerUpload",
+                "ecr:UploadLayerPart",
+                "ecr:CompleteLayerUpload",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:PutImage"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "kms:Decrypt"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "ForAnyValue:StringEquals": {
+                    "kms:EncryptionContextKeys": "aws:imagebuilder:arn",
+                    "aws:CalledVia": [
+                        "imagebuilder.amazonaws.com"
+                    ]
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": "arn:aws:s3:"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:CreateLogGroup",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:log-group:/aws/imagebuilder/*"
+        }
+    ]
+}

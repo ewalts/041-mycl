@@ -21,6 +21,7 @@
       sed -i 's/_REM_HOST_/{{ log_dest }}/g' /etc/rsyslog.conf
 
   - name: Restart rsyslog daemon
+    become: true
     service: 
       name: rsyslog
       state: restarted

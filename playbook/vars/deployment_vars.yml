@@ -1,0 +1,59 @@
+###> RWI Technology Kubernetes Deployment
+###> Deployment details
+copy_local_key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+
+###> Tags
+web_tags_name: "{{ product_id }}-site"
+host_purpose: mysql_cluster
+product_tag: "{{ product_id }}"
+product_title: "{{ product_id }} MySQL NDB Cluster"
+
+deploy_path: "/usr/share/{{ product_id }}"
+ami_name: "{{ product_id }}-ubu-22"
+tags_name: "{{ product_id }}-w2"
+
+s3_repo: "s3://{{ product_id }}"
+s3_bucket: "{{ product_id }}"
+s3_policy: "{{ script_path }}/{{ product_id }}-s3-json"
+s3_policy_source: ~/.ansible/iam/S3_simple_ec2_policy.json
+
+
+ecr_reg_name: "{{ product_id }}"
+iam_role: "{{ product_id }}-w2-EC2-Role"
+role_desc: "MySQL EC2 Role"
+instance_profile: "{{ product_id }}-w2-EC2Profile"
+policy_name: "{{ product_id }}-w2-EC2Policy"
+item: "{{ product_id }}-w2-cp1"
+key_name: "{{ product_id }}"
+
+net_role_tag: "MySQL NDB Cluster"
+
+ncom_net_sg: "{{ product_id }}-w2-ncoms"
+sg: "{{ product_id }}-w2-ncoms"
+sg_tag_name: "{{ product_id }}-w2-ncoms"
+new_env: "{{ product_id }}"
+script_path: "{{ dep_home }}/playbook/scripts"
+key_file: "{{ key_dir }}/{{ product_id }}.pem"
+my_ssh_key_path: "{{ key_dir }}/{{ product_id }}.pem"
+
+#################################
+deployment_log: "{{ dep_home }}/playbook/vars/deployment_output_vars.yml"
+subnet_tag_name: "{{ product_id }}-w2-subnet"              
+
+ncom_tag_name: "{{ product_id }}-w2"          
+tags_service: "{{ product_id }}"         
+
+#my_elb: "{{ product_id }}-w2-lb01"
+mycl_asgs:
+  - { name: "{{ product_id }}-node-w2-asg", lt: "{{ product_id }}-node-launch-template", lt_param: 'node-launch-template' }
+  - { name: "{{ product_id }}-mgr-w2-asg", lt: "{{ product_id }}-mgr-launch-template", lt_param: 'mgr-launch-template' }
+
+###> Local logstash pipeline
+# logstash_config: files/logstash.conf
+# logstash_pipline: files/logstash_pipe.json
+# elsatic_dest: 10.10.10.10:9200
+
+###>  Central logging
+#rsyslog_file: files/rsyslog.conf  ###> Single remote host for central logging via syslog facility.
+log_dest: 34.209.154.137  ###> Syslog/logstash host:port When already defined, deployment is not going to automatically asign this value
+

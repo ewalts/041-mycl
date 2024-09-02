@@ -1,0 +1,97 @@
+---
+## This playbook is for creating just the ASG if everything else exists already.
+
+- name: AWS - deploy ASG infrastructure - mycl_nodes
+  vars_files:
+    - vars/sec_vars.yml
+    - vars/deployment_vars.yml
+    - vars/aws_template_vars.yml
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Pull Security Group ID
+      amazon.aws.ec2_security_group_info:
+        filters:
+          group-name: "{{ sg }}"
+      register: sg_info
+
+    - name: Show security group id
+      ansible.builtin.debug:
+        var: sg_info['security_groups'][0]['group_id']
+
+    - name: Pull Subnet ID
+      amazon.aws.ec2_vpc_subnet_info:
+        filters:
+          vpc-id: "{{ vpc_id }}"
+          "tag:Name": "{{ subnet_tag_name }}"
+      register: subnet_info
+
+    - name: Show security group id
+      ansible.builtin.debug:
+        var: subnet_info['subnets'][0]['subnet_id']
+
+    - name: Pull AMI ImageId
+      amazon.aws.ec2_ami_info:
+        region: "{{ region }}"
+        filters:
+          name: "{{ mycl_ami_name }}"
+      register: ami_info
+
+    - name: create mycl nodes auto scaling group
+      amazon.aws.autoscaling_group:
+        name: "{{ mycl_asg }}"
+        availability_zones: [ "{{ az }}" ]
+#        load_balancers: ["{{ mycl_elb }}"]
+        vpc_zone_identifier:
+          - "{{ subnet_info['subnets'][0]['subnet_id'] }}"
+        launch_template: 
+          launch_template_name: "{{ mycl_asg_lt }}"
+        health_check_period: 60
+        health_check_type: 'EC2'
+        replace_all_instances: True
+        min_size: 1
+        max_size: 1
+        desired_capacity: 1
+        region: "{{ region }}"
+      register: asg_info
+    - debug:
+        msg: "{{ asg_info }}"
+
+    - name: Deployment Record Update ASG ARN Nodes
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'mycl_auto_scaling_group_arn:'
+        line: "mycl_auto_scaling_group_arn: {{ asg_info['auto_scaling_group_arn'] }}"
+
+
+    - name: create mycl manager auto scaling group
+      amazon.aws.autoscaling_group:
+        name: "{{ myclmgr_asg }}"
+        availability_zones: [ "{{ az }}" ]
+#        load_balancers: ["{{ mycl_elb }}"]
+        vpc_zone_identifier:
+          - "{{ subnet_info['subnets'][0]['subnet_id'] }}"
+        launch_template:
+          launch_template_name: "{{ myclmgr_asg_lt }}"
+        health_check_period: 60
+        health_check_type: 'EC2'
+        replace_all_instances: True
+        min_size: 1
+        max_size: 1
+        desired_capacity: 1
+        region: "{{ region }}"
+      register: asg_info
+    - debug:
+        msg: "{{ asg_info }}"
+
+    - name: Deployment Record Update ASG ARN Manager
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'myclmgr_auto_scaling_group_arn:'
+        line: "myclmgr_auto_scaling_group_arn: {{ asg_info['auto_scaling_group_arn'] }}"
+
+

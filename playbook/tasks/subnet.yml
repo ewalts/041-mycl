@@ -1,0 +1,22 @@
+    # Networking exists or create
+    - name: Create Node communication subnet
+      amazon.aws.ec2_vpc_subnet:
+        state: present
+        vpc_id: "{{ vpc_id }}"
+        cidr: "{{ ncom_net_cidr }}"
+        tags:
+          net_role: "{{ net_role_tag }}"
+          environment: "{{ new_env }}"
+          Name: "{{ subnet_tag_name }}"
+      register: subnet_info
+    - debug:
+        msg: "{{ subnet_info }}"
+
+    - name: Deployment Record Update New Subnet Id
+      lineinfile:
+        state: present
+        create: true
+        path: "{{ deployment_log }}"
+        regexp: 'subnet_id:'
+        line: "subnet_id: {{ subnet_info['subnet']['id'] }}"
+

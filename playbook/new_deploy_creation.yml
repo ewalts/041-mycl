@@ -7,152 +7,46 @@
   hosts: localhost
   gather_facts: false
   tasks:
+     # VPC Exists/Create
+#    - name: VPC Exists
+#      import_tasks:
+#        file: tasks/create_vpc.yml
+
+    # Deployment record title/product_id/vpc_id
+    - name: Deployment Record Create/exists
+      import_tasks:
+        file: tasks/deployment_record.yml
+
     # New project keypair exists or create
     - name: import new key task key_pair
       import_tasks:
         file: tasks/key_pair.yml
 
     # AWS storage w/access policies for project software and configurations
-    - name: import S3 and ECR creation task
+    - name: Policy for S3 and ECR
       import_tasks:
         file: tasks/create_s3_policy.yml
 
-    - name: import S3 and ECR creation task
+    - name: S3 Bucket and ECR creation task
       import_tasks:
         file: tasks/create_s3_bucket.yml
 
     # Networking exists or create
     - name: Create Node communication subnet
-      amazon.aws.ec2_vpc_subnet:
-        state: present
-        vpc_id: "{{ vpc_id }}"
-        cidr: "{{ ncom_net_cidr }}"
-        tags:
-          net_role: k8s_ncom
-          environment: "{{ new_env }}"
-          Name: "{{ subnet_tag_name }}"
-      register: subnet_info
-    - debug:
-        msg: "{{ subnet_info }}"
-
-    - name: Deployment Record Update Include VPC ID
-      lineinfile:
-        state: present
-        create: true
-        path: "{{ deployment_log }}"
-        regexp: 'vpc_id:'
-        line: "vpc_id: {{ vpc_id }}"
-
-    - name: Deployment Record Update New Subnet Id
-      lineinfile:
-        state: present
-        create: true
-        path: "{{ deployment_log }}"
-        regexp: 'subnet_id:'
-        line: "subnet_id: {{ subnet_info['subnet']['id'] }}"
+      import_tasks:
+        file: tasks/subnet.yml
 
     - name: Create node communication security group
-      amazon.aws.ec2_security_group:
-        name: "{{ sg }}"
-        description: communication for kubernetes hosts
-        vpc_id: "{{ vpc_id }}"
-        rules:
-          - proto: tcp
-            ports:
-              - 443
-              - 80
-              - 22
-              - 3306
-            cidr_ip: "{{ ncom_net_cidr }}"
-          - proto: tcp
-            ports:
-              - 3306
-              - 443
-              - 80
-              - 22
-            cidr_ip: "{{ my_ip }}"
-      register: sg_info
-    - debug:
-        msg: "{{ sg_info }}"
-
-    - name: Deployment Record Update Security Group
-      lineinfile:
-        state: present
-        create: true
-        path: "{{ deployment_log }}"
-        regexp: 'sg_id:'
-        line: "sg_id: {{ sg_info['group_id'] }}"
+      import_tasks:
+        file: tasks/create_security_group.yml
 
     - name: Show security group sg instance_id
       ansible.builtin.debug:
         var: sg_info['group_id']
 
-    - name: Assume Role exists/create
-      community.aws.iam_role:
-        name: "{{ iam_role }}"
-        assume_role_policy_document: "{{ lookup('file','{{ script_path }}/assume_iam_role.json') }}"
-        description: Role for nagios monitor
-        state: present
-        tags:
-          environment: "{{ new_env }}"
-      register: iam_role_info
-    - debug:
-        msg: "{{ iam_role_info }}"
-
-    - name: Deployment Record Update IAM Role
-      lineinfile:
-        state: present
-        create: true
-        path: "{{ deployment_log }}"
-        regexp: 'iam_role:'
-        line: "iam_role: {{ iam_role_info['role_id'] }}"
-
-    # EC2 instance access
-    - name: AWS IAM Instance Profile - Create
-      ansible.builtin.command: aws iam create-instance-profile
-        --instance-profile-name "{{ instance_profile }}"
-      ignore_errors: true
-
-    - name: ECR Policy exists/create
-      amazon.aws.iam_policy:
-        iam_type: role
-        iam_name: "{{ iam_role }}"
-        policy_name: "{{ policy_name }}"
-        policy_json: "{{ lookup('file', s3_policy ) }}"
-        state: present
-      register: iam_policy_info
-    - debug:
-        msg: "{{ iam_policy_info }}"
-
-    - name: Deployment Record Update IAM Policy
-      lineinfile:
-        state: present
-        create: true
-        path: "{{ deployment_log }}"
-        regexp: 'iam_policy:'
-        line: "iam_policy: {{ iam_policy_info['policy_names'][0] }}"
-
-    - name: Attach mycl IAM Role to Profile
-      ansible.builtin.command: aws iam add-role-to-instance-profile
-        --role-name "{{ iam_role }}"
-        --instance-profile-name "{{ instance_profile }}"
-      ignore_errors: true
-
-    - name: Deployment Record Update Instance Profile
-      lineinfile:
-        state: present
-        create: true
-        path: "{{ deployment_log }}"
-        regexp: 'instance_profile:'
-        line: "instance_profile: {{ instance_profile }}"
-
-    - name: Deployment Record Update Load Balancer
-      lineinfile:
-        state: present
-        create: true
-        path: "{{ deployment_log }}"
-        regexp: 'elb:'
-        line: "elb: {{ my_elb }}"
+    - name: EC2 Assume Role/Profile exists/create
+      import_tasks:
+        file: tasks/create_assume_role.yml
 
     - name: AMI Instance exists/create
       amazon.aws.ec2_instance:
@@ -196,8 +90,15 @@
       register: php_output
     - debug:
         msg: "{{ php_output }}"
-- name: Run play basic ubuntu server setup
-  ansible.builtin.import_playbook: ubuntu_server_setup.yml
 
-- name: Populate S3 MySQL Software Repository
-  ansible.builtin.import_playbook: test_my_repo.yml
+- name: Run play basic ubuntu server setup
+  import_playbook: ubuntu_server_setup.yml
+
+- name: Run play MySQL NDB Cluster
+  import_playbook: install_mysql_ndb.yml
+
+- name: create AMI
+  import_playbook: generate_ami.yml
+
+- name: create launch templates and ASGs both MGR and Nodes
+  import_playbook: create_asgs_mgr_nodes_lts.yml

@@ -4,7 +4,7 @@
       amazon.aws.autoscaling_group:
         name: "{{ items.asg_name }}"
         availability_zones: [ "{{ az }}" ]
-        load_balancers: ["{{ my_elb }}"]
+#        load_balancers: ["{{ my_elb }}"]
         vpc_zone_identifier:
           - "{{ subnet_info['subnets'][0]['subnet_id'] }}"
         launch_template: 

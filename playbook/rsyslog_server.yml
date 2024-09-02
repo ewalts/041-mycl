@@ -142,7 +142,4 @@
     - name: Install and configure rsyslog collection listener
         import_tasks: tasks/configure_rsyslog_server.yml
 
-- name: Run play basic ubuntu server setup
-  ansible.builtin.import_playbook: ubuntu_server_setup.yml
-
 

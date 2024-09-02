@@ -1,0 +1,14 @@
+mycl_ndb_web_src: 'https://cdn.mysql.com/Downloads/MySQL-Cluster-8.4/'
+
+mycl_ndb_node_files: [ 
+  "mysql-cluster-community-client_8.4.2-1ubuntu22.04_amd64.deb",
+  "mysql-cluster-community-server-core_8.4.2-1ubuntu22.04_amd64.deb",
+  "mysql-cluster-community-data-node_8.4.2-1ubuntu22.04_amd64.deb",
+  "mysql-common_8.4.2-1ubuntu22.04_amd64.deb",
+  "mysql-cluster-community-server_8.4.2-1ubuntu22.04_amd64.deb",
+  "mysql-cluster-community-client-core_8.4.2-1ubuntu22.04_amd64.deb",
+  "mysql-client_8.4.2-1ubuntu22.04_amd64.deb",
+  "mysql-server_8.4.2-1ubuntu22.04_amd64.deb"]
+
+mycl_ndb_mgr_files: [
+   "mysql-cluster-community-management-server_8.4.2-1ubuntu22.04_amd64.deb"]

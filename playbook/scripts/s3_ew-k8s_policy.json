@@ -1,0 +1,45 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "VisualEditor0",
+			"Effect": "Allow",
+			"Action": [
+				"s3:ReplicateObject",
+				"s3:PutObject",
+				"s3:GetObject",
+				"s3:GetObjectTorrent",
+				"s3:PutObjectRetention",
+				"s3:DeleteObjectVersion",
+				"s3:UpdateJobStatus"
+			],
+			"Resource": "arn:aws:s3:"
+		},
+		{
+			"Sid": "VisualEditor1",
+			"Effect": "Allow",
+			"Action": [
+                                "s3:CreateJob",
+                                "s3:PutBucketNotification",
+                                "s3:PutBucketWebsite",
+                                "s3:ListBucket"
+                               ],
+			"Resource": "arn:aws:s3:"
+		},
+ 		{
+
+                       "Sid": "VisualEditor2",
+	               "Effect": "Allow",
+           	       "Action": [
+                		"ecr:GetDownloadUrlForLayer",
+				"ecr:BatchGetImage",
+				"ecr:DescribeImages",
+				"ecr:GetAuthorizationToken",
+				"ecr:BatchCheckLayerAvailability", 
+                                "ecr:GetImage",
+                                "ecr:PutImage" 
+            		],
+			"Resource": "arn:aws:"
+        	}
+       ]
+}
