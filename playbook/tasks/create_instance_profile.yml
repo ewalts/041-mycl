@@ -1,0 +1,9 @@
+    # EC2 instance access
+    - name: AWS IAM Instance Profile - Create
+      ansible.builtin.command: aws iam create-instance-profile
+        --instance-profile-name "{{ ec2_prof.instance_profile }}"
+      ignore_errors: true
+      loop: "{{ instances }}"
+      loop_control:
+        loop_var: ec2_prof
+

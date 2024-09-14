@@ -26,30 +26,16 @@
       import_tasks:
         file: tasks/local_accounts.yml
 
-    - name: Update apt cache
-      become: true
-      ansible.builtin.apt:
-        update_cache: yes
+    - name: Host identity
 
-    - name: remove ufw
-      become: true
-      apt:
-        name: ufw
-        state: absent
 
-    - name: Update installed packages
-      become: true
-      ansible.builtin.apt:
-        name: "*"
-        state: latest
+    - name: Ubuntu Packages
+      import_tasks:
+        file: tasks/ubuntu_server_basics.yml
 
     - name: Configure rsyslog remote logging
       import_tasks:
         file: tasks/remote_syslog.yml
-
-    - name: Import package insall tasks
-      import_tasks:
-        file: tasks/package1.yml
 
     - name: Define prefered timezone
       become: true
@@ -80,11 +66,27 @@
         line: 'AllowGroups "{{ ssh_group }}"'
         insertafter: '#VersionAddendum none'
 
-
     - name: Remove excess packages no longer needed
       become: true
       ansible.builtin.apt:
         autoremove: yes
+    - name: Iptables - Allow ssh connections
+      become: true
+      ansible.builtin.iptables:
+        chain: INPUT
+        protocol: tcp
+        ctstate: NEW,ESTABLISHED,RELATED
+        source: "{{ item }}"
+        destination_ports:
+          - "22"
+          - "3306"
+          - "33061"
+        jump: ACCEPT
+        state: present
+      ignore_errors: true
+      loop:
+        - "{{ ncom_net_cidr }}"
+        - "{{ my_ip }}"
 
     - name: Reboot all hosts
       become: true

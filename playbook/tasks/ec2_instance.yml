@@ -1,0 +1,31 @@
+- name: AMI Instance exists/create
+  amazon.aws.ec2_instance:
+    name: "{{ ec2_ins.name }}"
+    key_name: "{{ key_name }}"
+    iam_instance_profile: "{{ ec2_ins.instance_profile }}"
+    vpc_subnet_id: "{{ subnet_info['subnet']['id'] }}"
+    private_ip_address: "{{ ec2_ins.ip_add }}/28"
+    instance_type: "{{ ins_type }}"
+    security_groups:
+      - "{{ sg }}"
+    network:
+      assign_public_ip: true
+    image_id: "{{ ec2_base_ami }}"
+    tags:
+      environment: "{{ new_env }}"
+  register: "ec2[]{{ ec2_ins.name }}"
+  loop: "{{ instances }}"
+  loop_control:
+    loop_var: ec2_ins
+
+- debug:
+    msg: "{{ ec2 }}"
+
+- name: Deployment Record Update Instance
+  lineinfile:
+    state: present
+    create: true
+    path: "{{ deployment_log }}"
+    regexp: '_instance_id:'
+    line: "instance_id: {{ ec2['instance_ids'][0] }}"
+  loop:

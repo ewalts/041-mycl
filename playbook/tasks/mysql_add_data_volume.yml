@@ -42,7 +42,7 @@
         line: "data_vol: {{ ec2_vol['volume_id'] }}"
 
 - name: Define partition
-  hosts: mysql
+  hosts: mycl
   gather_facts: false
   vars_files:
     - vars/deployment_vars.yml

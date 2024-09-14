@@ -259,7 +259,7 @@
   ansible.builtin.import_playbook: ubuntu_server_setup.yml
 
 - name: Run play MySQL Install
-  ansible.builtin.import_playbook: install_mysql_ndb_cluster.yml
+  ansible.builtin.import_playbook: install_mysql_cluster.yml
 
 - name:  Run play AMI Creation play
   ansible.builtin.import_playbook: generate_ami.yml

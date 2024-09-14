@@ -40,7 +40,9 @@
         - mysql-cluster-community-data-node
         - mysql-cluster-community-management-server
         - mysql-client
-        - mysql-server 
+        - mysql-server
+        - mysql-shell
+        - mysql-router 
 
     ###>  Check MySQL Data Dir
     - name: Check disk

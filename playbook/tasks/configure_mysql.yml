@@ -1,0 +1,155 @@
+
+    - name: MySQL Server is Installed
+      become: true
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: python3-pymysql is Installed
+      become: true
+      apt:
+        name: python3-pymysql
+        state: present
+
+    - name: Stop the MySQL Server Service
+      become: true
+      shell:
+        systemctl stop mysql
+
+    - name: Modify mysqld.cnf Define the MySQL bind address External Connections
+      become: true
+      lineinfile:
+        state: present
+        create: true
+        path: /etc/mysql/mysql.conf.d/mysqld.cnf
+        regexp: '^bind-address'
+        line: 'bind-address            = 0.0.0.0'
+
+    - name: Modify mysqld.cnf defining the MySQLx bind address to allow external connections
+      become: true
+      lineinfile:
+        state: present
+        create: true
+        path: /etc/mysql/mysql.conf.d/mysqld.cnf
+        regexp: 'mysqlx-bind-address'
+        line: 'mysqlx-bind-address       = 0.0.0.0'
+
+    - name: Modify mysqld.cnf defining the new MySQL data directory
+      become: true
+      lineinfile:
+        state: present
+        create: true
+        path: /etc/mysql/mysql.conf.d/mysqld.cnf
+        regexp: "# datadir       = /var/lib/mysql"
+        line: datadir      = /data0/mysql
+
+    - name: Define SSL for encryption intransit
+      become: true
+      blockinfile:
+        state: present
+        create: true
+        path: /etc/mysql/mysql.conf.d/mysqld.cnf
+        #insertafter: "[mysqld]"
+        insertbefore: "Basic Settings"
+        block: |
+          ssl_ca=ca.pem
+          ssl_cert=server-cert.pem
+          ssl_key=server-key.pem
+          require_secure_transport=ON
+
+    - name: Update the apparmor policy
+      become: true
+      blockinfile:
+        state: present
+        create: true
+        path: /etc/apparmor.d/usr.sbin.mysqld
+        insertbefore: /var/lib/mysql/ r,
+        block: |
+          /data0/mysql/ r,
+          /data0/mysql/** rwx,
+
+    - name: Set filesystem permissions and migrade system database
+      become: true
+      shell: |
+        chown mysql:mysql /data0/mysql
+        rsync -av /var/lib/mysql/ /data0/mysql/
+      when: blue == false
+      ignore_errors: true
+
+    - name: Enable mysql.service
+      become: true
+      shell: |
+        systemctl enable mysql.service
+
+    - name: Reboot MySQL hosts
+      become: true
+      ansible.builtin.reboot:
+
+    - name: Wait for SSH
+      ansible.builtin.wait_for:
+        port: 22
+        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+        search_regex: OpenSSH
+        delay: 10
+      connection: local
+
+    - name: Wait for MySQL
+      service:
+        name: mysql
+        state: started
+      register: mysql_details
+      until: mysql_details.status.ActiveState == "active"
+      retries: 10
+      delay: 10
+
+    - name: Copy database file
+      copy:
+        src: "{{ mysql_src_dir }}/{{ db_file }}"
+        dest: "/tmp/{{ db_file }}"
+
+    - name: Count tables in "{{ db_name }}"
+      become: true
+      community.mysql.mysql_query:
+        login_db: performance_schema
+        query: "select count(*) from table_handles where OBJECT_SCHEMA='{{ db_name }}'; "
+      ignore_errors: true
+      register: table_count
+
+    - debug:
+        msg: "{{ table_count }}"
+
+    - name: Create database
+      become: true
+      shell: |
+        mysqladmin create "{{ db_name }}"
+#      when: table_count == 0
+      register: create_result
+      ignore_errors: true
+      
+    - debug:
+        msg: "{{ create_result }}"
+
+    - name: Import database 
+      become: true
+      shell: |
+        mysql "{{ db_name }}" < "/tmp/{{ db_file }}"
+      register: import_result
+ #     when: table_count == 0
+      ignore_errors: true
+    - debug:
+        msg: "{{ import_result }}"
+
+    - name: Create db user account
+      become: true
+      community.mysql.mysql_user: 
+        name: "{{ db_user }}"
+        host: "{{ web_priv_ip }}"
+        pass: "{{ db_pass }}"
+        priv:
+          - "{{ db_name }}.*: 'ALL, GRANT'"
+        state: present
+      register: out
+      ignore_errors: true
+    - debug:
+        msg: "{{ out }}"
+

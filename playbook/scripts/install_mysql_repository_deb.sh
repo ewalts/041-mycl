@@ -9,6 +9,4 @@ Red='\e[0;31m'; BRed='\e[1;31m'; BIRed='\e[1;91m'; Gre='\e[0;32m'; BGre='\e[1;32
 sudo su - root
 export DEBIAN_FRONTEND=noninteractive
 apt-get install -y /tmp/mysql-apt-config_0.8.32-1_all.deb
-o
-
 

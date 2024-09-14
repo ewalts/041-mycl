@@ -3,6 +3,7 @@
   vars_files:
     - vars/sec_vars.yml
     - vars/deployment_vars.yml
+    - vars/deployment_output_vars.yml
     - vars/aws_template_vars.yml
   hosts: localhost
   gather_facts: false
@@ -13,14 +14,9 @@
 #        file: tasks/create_vpc.yml
 
     # Deployment record title/product_id/vpc_id
-    - name: Deployment Record Create/exists
-      import_tasks:
-        file: tasks/deployment_record.yml
 
     # New project keypair exists or create
     - name: import new key task key_pair
-      import_tasks:
-        file: tasks/key_pair.yml
 
     # AWS bucket and/or registry storage w/access policies for project software and configurations
     - name: S3 Bucket and ECR creation task
@@ -52,17 +48,12 @@
       ansible.builtin.debug:
         var: sg_info['group_id']
 
-    - name: EC2 Assume Role exists/create 
+    - name: EC2 Assume Role/Profile exists/create
       import_tasks:
         file: tasks/create_assume_role.yml
 
-    - name: Instance Profile(s) loop create
-      import_tasks:
-        file: tasks/create_instance_profile.yml
-
-    - name: Instance(s) loop create
-      import_tasks: 
-        file: tasks/ec2_instance.yml
+    - name: AMI Instance exists/create
+      import_tasks: tasks/ec2_instance.yml
 
     - name: Register instance in ad-hoc groups
       add_host:
@@ -80,10 +71,6 @@
       register: php_output
     - debug:
         msg: "{{ php_output }}"
-
-    - name: Generate hosts file
-      import_tasks:
-        file: tasks/generate_hosts_file.yml
 
 - name: Run play basic ubuntu server setup
   import_playbook: configure_ami_instance.yml

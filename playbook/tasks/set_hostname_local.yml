@@ -1,0 +1,9 @@
+- name: Update hostname
+  become: true
+  shell: |
+    "sudo hostname {{ ident.hostname }}"
+    "sudo rm -f /etc/hostname"
+    "sudo echo '{{ ident.hostname }} >> /etc/hostname"
+    "sudo chown root:root /etc/hostname"
+    "sudo chmod 0644 /etc/hostname"
+

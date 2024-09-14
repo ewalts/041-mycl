@@ -1,0 +1,16 @@
+# Let NetworkManager manage all devices on this system
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+     link-local: []
+     dhcp4: no
+     addresses: [_HOST_ADDR_/28]
+     gateway4: 10.1.241.1
+     nameservers:
+       addresses: [10.1.241.1]
+     routes:
+       - to: 0.0.0.0/0
+         via: 10.1.241.1
+

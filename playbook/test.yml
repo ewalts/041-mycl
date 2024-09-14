@@ -3,11 +3,15 @@
     - vars/sec_vars.yml
     - vars/deployment_vars.yml
     - vars/aws_template_vars.yml
+    - vars/instance_vars.yml
   hosts: localhost
   gather_facts: false
   tasks:
     # test security group information
     - debug: 
-        msg: "{{ sg }}"
-      
+        msg: "{{ dns_zone }}"
+
+    - name: Run dns fetch test
+      import_tasks:
+        file: tasks/create_dns_records.yml
 

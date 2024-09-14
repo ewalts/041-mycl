@@ -1,0 +1,10 @@
+# Define unique host identity
+- name: Hosts file
+  become: true
+  copy:
+    src: "{{ dep_home }}/files/etc-hosts.txt"
+    dest: '/etc/hosts'
+    mode: 0644
+    owner: root
+    group: root
+

@@ -1,0 +1,32 @@
+- name: Query cluster current details
+  hosts: mycl
+  gather_facts: false
+  vars_files:
+    - vars/sec_vars.yml
+    - vars/deployment_vars.yml
+  tasks:
+    - debug:
+        msg: "{{ ansible_host }}"
+
+    - name: Fetch cluster attributes
+      community.mysql.mysql_query:
+        login_db: mysql_innodb_cluster_metadata
+        query: SELECT attributes FROM clusters
+        login_user: "{{ myUser }}"
+        login_password: "{{ myPass }}"
+      register: cl_info
+    - debug:
+        msg: "{{ cl_info.query_result[0][0].attributes }}"
+
+
+
+#    - name: Get primary binlog file name and binlog position
+#      become: true
+#      community.mysql.mysql_replication:
+#        config_file: "{{ mycl_config }}"
+#        login_unix_socket: '/var/run/mysqld.sock'
+#        login_user: "{{ myUser }}"
+#        login_password: "{{ myPass }}"
+#        login_host: "{{ mycl_mgr }}"
+#        login_port: 3306
+#        mode: getprimary 

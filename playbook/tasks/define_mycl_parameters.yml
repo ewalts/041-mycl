@@ -1,0 +1,19 @@
+- name: Create Cluster User Secret
+  community.aws.secretsmanager_secret:
+    name: 'mycl_user_password'
+    state: present
+    secret_type: 'string'
+    secret: "{{ mycl_user_password }}"
+
+- name: Create Cluster User Name
+  community.aws.secretsmanager_secret:
+    name: 'mycl_user_name'
+    state: present
+    secret_type: 'string'
+    secret: "{{ mycl_user_name }}"
+
+- name: Create SSM Parameter Cluster Master/Primary
+  community.aws.ssm_parameter:
+    name: "mycl_primary"
+    state: present
+    value: "10.0.0.0"

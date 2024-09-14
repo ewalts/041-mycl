@@ -1,0 +1,10 @@
+instances: 
+  - name: "{{ product_id }}-mgr"
+    ip_add: '10.1.241.11'
+    instance_profile: "{{ product_id }}-w2-EC2Profile-1" 
+  - name: "{{ product_id }}-n2"
+    ip_add: '10.1.241.12'
+    instance_profile: "{{ product_id }}-w2-EC2Profile-2" 
+  - name: "{{ product_id }}-n3"
+    ip_add: '10.1.241.13'
+    instance_profile: "{{ product_id }}-w2-EC2Profile-3" 

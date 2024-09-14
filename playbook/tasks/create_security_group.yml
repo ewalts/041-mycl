@@ -4,18 +4,19 @@
         description: communication for kubernetes hosts
         vpc_id: "{{ vpc_id }}"
         rules:
+          - proto: icmp
+            from_port: 8
+            to_port: -1
+            cidr_ip: "{{ ncom_net_cidr }}"
           - proto: tcp
             ports:
-              - 443
-              - 80
               - 22
               - 3306
+              - 33061
             cidr_ip: "{{ ncom_net_cidr }}"
           - proto: tcp
             ports:
               - 3306
-              - 443
-              - 80
               - 22
             cidr_ip: "{{ my_ip }}"
       register: sg_info

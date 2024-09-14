@@ -1,0 +1,37 @@
+### Create/update host A records
+- name: Check exists/details
+  amazon.aws.route53:
+    state: get
+    zone: "{{ dns_zone }}"
+    record: "{{ host_dns.hostname }}.{{ dns_zone }}"
+    type: A
+  register: rec
+  ignore_errors: true
+- debug:
+    msg: "{{ rec }}"
+
+#- name: Remove record
+#- name: Delete new.foo.com A record using the results from the get command
+#  amazon.aws.route53:
+#    state: absent
+#    zone: "{{ dns_zone }}"
+#    record: "{{ host_dns.hostname }}.{{ dns_zone }}"
+
+- debug: 
+    msg: "{{ instances }}"
+
+- name: Create record
+  amazon.aws.route53:
+    state: present
+    zone: "{{ dns_zone }}"
+    record: "{{ host_dns.name }}.{{ dns_zone }}"
+    value: "{{ host_dns.ip_add }}"
+    type: A
+  loop: "{{ instances }}"
+  loop_control:
+    loop_var: host_dns
+  register: new_rec
+
+- debug:
+    msg: "{{ new_rec }}"
+

@@ -1,0 +1,50 @@
+# Copyright (c) 2014, 2024, Oracle and/or its affiliates.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2.0,
+# as published by the Free Software Foundation.
+#
+# This program is designed to work with certain software (including
+# but not limited to OpenSSL) that is licensed under separate terms,
+# as designated in a particular file or component or in included license
+# documentation.  The authors of MySQL hereby grant you an additional
+# permission to link the program and your derivative works with the
+# separately licensed software that they have either included with
+# the program or referenced in the documentation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License, version 2.0, for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA
+
+#
+# The MySQL  Server configuration file.
+#
+# For explanations see
+# http://dev.mysql.com/doc/mysql/en/server-system-variables.html
+
+[mysqld]
+server-id       = _NEW_ID_
+log_bin_basename= "041-mycl_"
+disabled_storage_engines = "MyISAM,BLACKHOLE,FEDERATED,ARCHIVE,MEMORY"
+enforce_gtid_considtency = ON
+gtid_mode       = ON
+innodb_flush_log_at_trx_commit=1
+sync_binlog	= 1
+bind-address    = 0.0.0.0
+mysqlx-bind-address = 0.0.0.0
+pid-file	= /var/run/mysqld/mysqld.pid
+socket		= /var/run/mysqld/mysqld.sock
+datadir		= /var/lib/mysql
+log-error	= /var/log/mysql/error.log
+
+plugin_load_add='group_replication.so'
+group_replication_group_name="2f43f7cd-6ba7-11ef-9a0f-0aa3e218ff1b"
+group_replication_start_on_boot=off
+group_replication_local_address= "041-mycl-1:33061"
+group_replication_group_seeds= "041-mycl-1:33061,041-mycl-2:33061,041-mycl-3:33061"
+group_replication_bootstrap_group=off

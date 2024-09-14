@@ -1,0 +1,12 @@
+- name: Update security group settings
+  gather_facts: false
+  hosts: localhost
+  vars_files:
+    - vars/sec_vars.yml
+    - vars/deployment_vars.yml
+    - vars/aws_template_vars.yml
+
+  tasks:
+    - name: Run the security group task
+      import_tasks:
+        file: tasks/create_security_group.yml

@@ -1,0 +1,8 @@
+### 5.23>  Requirements: pymysql and mysql-client installed on remote ansible_host
+- name: Create backup/dump of database for product "{{ product }}"
+  community.mysql.mysql_db:
+    state: dump
+      login_user: "{{ myUser }}"
+      login_pass: "{{ myPass }}"
+      name: "{{ db_name }}"
+      target: "{{ db_dump_file }}"

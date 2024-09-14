@@ -19,10 +19,10 @@
         line: "iam_role: {{ iam_role_info['role_id'] }}"
 
     # EC2 instance access
-    - name: AWS IAM Instance Profile - Create
-      ansible.builtin.command: aws iam create-instance-profile
-        --instance-profile-name "{{ instance_profile }}"
-      ignore_errors: true
+#    - name: AWS IAM Instance Profile - Create
+#      ansible.builtin.command: aws iam create-instance-profile
+#        --instance-profile-name "{{ instance_profile }}"
+#      ignore_errors: true
 
     - name: ECR Policy exists/create
       amazon.aws.iam_policy:

@@ -1,0 +1,13 @@
+- name: Define mycl hosts
+  become: true
+  blockinfile:
+    path: /etc/hosts
+    block: |
+      {{ item.ip }} {{ item.name }}
+    marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.name }}"
+  loop:
+    - { name: mycl_db1, ip: 10.1.241.11 }
+    - { name: mycl_db2, ip: 10.1.241.12 }
+    - { name: mycl_db3, ip: 10.1.241.13 }
+    - { name: mycl_db4, ip: 10.1.241.14 }
+    - { name: mycl_db5, ip: 10.1.241.15 }

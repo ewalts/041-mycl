@@ -1,0 +1,10 @@
+- name: Generate hosts file from instance_vars
+  lineinfile:
+    path: "{{ dep_home }}/files/etc-hosts.txt" 
+    state: present
+    create: true
+    regexp: "{{ hosts.ip_addr }}"
+    line: "{{ hosts.ip_adr }}    {{ hosts.hostname }} {{ hosts.hostname }}.{{ domain }}"
+  loop: "{{ instance_vars }}"
+  loop_control:
+    loop_var: hosts

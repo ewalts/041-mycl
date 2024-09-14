@@ -20,10 +20,6 @@ $orig_content=str_replace('S3_BUCKET',$s3_bucket,$orig_content); ###> define the
 
 fclose($fh); ###> done reading closing file handle
 
-#$fh=fopen($constants.'user-data.sh','r');
-#$script_content=fread($fh,40000);
-
-#fclose($fh);
 #$script_content.="\n\n". str_replace('#!/bin/bash','##',$orig_content);
 
 $script_content=$orig_content;

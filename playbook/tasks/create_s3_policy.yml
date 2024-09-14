@@ -6,6 +6,8 @@
     - name: Update s3 policy json
       shell: |
         sed -i "s/s3_bucket/{{ s3_bucket }}/g" "{{ s3_policy }}"
+        sed -i "s/_MY_AWS_ID_/{{ my_aws_id }}/g" "{{ s3_policy }}"
+        sed -i "s/_MY_ASG_NAME_/{{ myclnode_asg_name }}/g" "{{ s3_policy }}"
         cat "{{ s3_policy }}"
       register: policy_json
     - debug:

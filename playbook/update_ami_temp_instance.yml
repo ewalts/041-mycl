@@ -1,0 +1,39 @@
+#######################################################>
+###> Updating packages to latest.
+#######################################################>
+- name: Updating Temporary Instance for AMI
+  hosts: ami_temp
+  remote_user: ubuntu
+  gather_facts: false
+  vars_files:
+    - vars/sec_vars.yml
+    - vars/deployment_vars.yml
+
+  tasks:
+    - name: Wait for SSH
+      ansible.builtin.wait_for:
+        port: 22
+        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+        search_regex: OpenSSH
+        delay: 5
+      connection: local
+
+    - name: Update apt cache
+      become: true
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Update installed packages
+      become: true
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+
+    - name: Remove excess packages no longer needed
+      become: true
+      ansible.builtin.apt:
+        autoremove: yes
+
+    - name: Reboot the host
+      become: true
+      ansible.builtin.reboot:

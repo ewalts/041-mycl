@@ -1,0 +1,21 @@
+- name: Put mysql config
+  amazon.aws.s3_object:
+    bucket: "{{ s3_bucket }}"
+    object: /asg-startup/mysqld.cnf
+    src: "{{ dep_home }}/files/mysqld.cnf"
+    mode: put
+
+- name: Put static network plan
+  amazon.aws.s3_object:
+    bucket: "{{ s3_bucket }}"
+    object: /asg-startup/000-041-mycl-static-plan.yaml
+    src: "{{ dep_home }}/files/000-041-mycl-static-plan.yaml"
+    mode: put
+
+- name: Put cron script
+  amazon.aws.s3_object:
+    bucket: "{{ s3_bucket }}"
+    object: /asg-startup/asg-ident-cron.sh
+    src: "{{ dep_home }}/files/asg-ident-cron.sh"
+    mode: put
+
