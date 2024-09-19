@@ -2,7 +2,7 @@
 by Richard Eric Walts
 
 
-Highly Available supported by 2 x ASG
+Highly Available ASG Design
 ---
 
 #Required Prerequisites:
@@ -26,13 +26,13 @@ Highly Available supported by 2 x ASG
  The deployment process defines some of my standard configurtions to the initial Ubuntu Instance. 
  Including, not limited to: firewall settings, SSH group membership restrictions, NTP service, currently installed packages updated, installs Java, boto, aws-cli, etc.
 
- After basic configurations, runs the install/configure play for MySQL NDB Cluster and Manager.
+ After basic configurations, runs the install/configure play for MySQL NDB or INNODB Cluster.
 
- After the software is installed on the first instance, it is cloned into the AMI for the NODES ASG launch template.
+ After the software is installed on the first instance, it is cloned into the AMI for the ASG launch template.
 
  After the node AMI is created, the cluster manager is installed.  
 
- The user-data scripts defined within the launch templates differ by ASG purpose the my.cnf file for nodes to the cluster.
+ The user-data scripts defined within the launch templates differ by ASG purpose the my.cnf file to the cluster.
 
 # Groups for inventory
  - ec2hosts	(all ec2hosts in this project)

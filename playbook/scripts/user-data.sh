@@ -8,12 +8,14 @@ sudo systemctl stop mysql
 # remove the auto.cnf file from the data directory /new-gen when start
 sudo rm -f /var/lib/mysql/auto.cnf
 
-# Generate a random number for the server_id
+# copy my.cnf file to etc, 
+sudo cp ~/041-mycl/files/mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf
+
+# Generate a random number and set it as unique server_id 
 new_id=$(($RANDOM % (10 - 98 + 1) + 10))
+sudo sed -i "s/_NEW_ID_/$new_id/g" /etc/mysql/mysql.conf.d/mysqld.cnf
 
-sed -i "s/_NEW_ID_/$new_id/g" ~/041-mycl/files/mysqld.cnf
-
-
+# allowable ip address list
 ips=('10.1.241.11','10.1.241.12','10.1.241.13','10.1.241.14','10.1.241.15')
 
 #Check the curernt IP address
